@@ -8,15 +8,15 @@ TO DO:
 LEGEND: o == Not done, x == done (to our knowledge), A = ask Maciel, T = test this, it looks a little funny
 
  x Default constructor --> 'x' means this is already done
- o Copy constructor - DEEP COPY
- o Destructor - DEALLOCATE MEMORY --> how is this different from clear??
- o Indexing operator - this is insert 
- o size --> we should increment this with every new insert??
+ T/A Copy constructor - DEEP COPY
+ T/A Destructor - DEALLOCATE MEMORY --> how is this different from clear??
+ T Indexing operator - this is insert 
+ x size --> we should increment this with every new insert??
  x empty 
  x/T begin 
  x/T end
- x/T find
- o erase(key) --> I started this
+ x/T find BETTER NOW :)
+ T erase(key) --> I started this
  o erase(iterator) --> I started this
  x clear --> traverses tree and deletes it all
  o swap --> shouldn't be too hard
@@ -88,15 +88,22 @@ class Map{
 //		while(root->next != nullptr) root = root->next;
 //		return root->next;
 
-	iterator find(Node<K, V> & root, K k){
-		while((root != NULL) && (root->key != k)){
-			if(k < root->key) root = root->left;
-			else root = root->right;
+	iterator find (K key){ //Ask the man himself if this is good
+		Node<K, V> node = & this.root; 
+		while((node != NULL) && (node->key != key)){
+			if(node->left == nullptr && node->right == nullptr){//Didn't find nothing, return end of map
+				return this.end();
+			}
+			if(key < node->key) node = node->left;
+			else node = node->right;
 		}
-		return root;
+		//Now we return an interator pointing to our nice node :)
+		return iterator(node);
 	}
 
-	iterator clear(){
+	
+
+	void clear(){
 		if(root != NULL){
 			(root->left).clear();
 			(root->right).clear();
@@ -105,22 +112,73 @@ class Map{
 		}	
 	}
  
-	// erase using a nodes key
-	iterator erase(Node<K, V> & root, K k){ 		
-		while(root->key != k){
-			if(k < root->key) root = root->left;
-			else root = root->right;
+	Node<K, V> const& operator[](K key){ //Indexing Operator ASK MACIEL for real AsK THAT handsome man :) 
+		iterator itr = this.find(key);
+		if(itr->p_current_node){ //If a value WAS found
+			return & itr->p_current_node; //return a reference to the element with that key
+		}else{ //If a value wasn't found
+			Node<K, V> newNode(); //Create a new node with that key and default(null?) value, add it to the map!
+			newNode().key = key;
+			this.insert(newNode);
 		}
-		// this is where you do some bullshit
+	}
+	
+	
+	
+	// erase using a nodes key
+	void erase(K z){
+		if(z->left == nullptr){
+			replace_subtree(this.root, z, z>right);
+		}else if(z->right == nullptr){
+			replace_subtree(this.root, z, z->left);
+		}else{
+			Node<K, V> y = begin(z->right);
+			if(y != z->right){
+				replace_subtree(this.root, y, y->right);
+				y->right = z->right;
+				y->right->parent = y; //ASK
+			}
+			replace_subtree(this.root, z, y);
+			y->left = z->left;
+			y->left->parent = y;
+		}
+		z->left = z->right = nullptr;
 	}
 	
 	// erase using a nodes iterator... place in the tree?
-	iterator erase(Node<K, V> & root, Iterator<K, V> itr){
+	void erase(Node<K, V> & root, Iterator<K, V> itr){
 		// yeah not really sure
 	}
 
 	private:
 	Node<K, V> * root; //this is the only node the object contains
+
+	void insert(Node<K, V> node){ //TBH this needs thorough testing
+		Node<K, V> root = & this.root;
+		if (root = NULL){
+			root = node;
+		}else{
+			Node<K, V> q = root;
+			bool done = false;
+			while(!done){
+				if(node.key < q.key){
+					if(q->left == nullptr){
+						q->left = node;
+						done = true;
+					}else{
+						q=q->left;
+					}
+				}else{
+					if(q->right == nullptr){
+						q->right = node;
+						done = true;
+					}else{
+						q = q->right;
+					}
+				}
+			} node->parent = q;
+		}
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////
