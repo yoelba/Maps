@@ -19,7 +19,7 @@ LEGEND: o == Not done, x == done (to our knowledge), A = ask Maciel, T = test th
  T erase(key)
  x erase(iterator) --> I started this
  x clear --> traverses tree and deletes it all
- o swap --> shouldn't be too hard
+ x swap --> shouldn't be too hard
  x Iterators - that support the following operations
 	x default constructor
 	x * - RETURN REFERENCE TO PAIR OBJECT
@@ -69,6 +69,8 @@ class Map{
 	public:
 	Map() : root () {} // instantiating our head node for the map
 
+	Map(const Map<K, V> & m);
+
 	~Map(); // Destructor --> implement this!
 
 	bool empty() { return (root == NULL); }
@@ -84,12 +86,12 @@ class Map{
 
 	iterator find (K key){ //Ask the man himself if this is good
 		Node<K, V> node = & this.root; 
-		while((node != NULL) && (node->key != key)){
-			if(node->left == nullptr && node->right == nullptr){//Didn't find nothing, return end of map
+		while((node != NULL) && (node.key != key)){
+			if(node.left == nullptr && node.right == nullptr){//Didn't find nothing, return end of map
 				return this.end();
 			}
-			if(key < node->key) node = node->left;
-			else node = node->right;
+			if(key < node.key) node = node.left;
+			else node = node.right;
 		}
 		//Now we return an interator pointing to our nice node :)
 		return iterator(node);
@@ -107,7 +109,7 @@ class Map{
 	}
  
 	Node<K, V> const& operator[](K key){ //Indexing Operator ASK MACIEL for real AsK THAT handsome man :) 
-		iterator itr = this.find(key);
+		iterator itr = find(key);
 		if(itr->p_current_node){ //If a value WAS found
 			return & itr->p_current_node; //return a reference to the element with that key
 		}else{ //If a value wasn't found
@@ -150,8 +152,15 @@ class Map{
 		map2.root = temp_root;
 	}
 
+	int size() { return size_; }
 
 	private:
+	
+	void deleteMap(Node<K, V> * &ptr);
+	void copy(Node<K, V> * &ptr);
+	
+	int size_;
+	
 	Node<K, V> * root; //this is the only node the object contains
 
 	void insert(Node<K, V> * node){ //Tisng
@@ -182,6 +191,44 @@ class Map{
 	}
 };
 
+// copy method
+template <class K, class V>
+void Map<K, V>::copy(Node<K, V> * & ptr){
+
+	if(ptr != NULL){
+		insert(ptr->key, ptr->value);
+		size_++;
+		copy(ptr->left);
+		copy(ptr->right);
+	}	
+}
+
+// copy constructor
+template <class K, class V>
+Map<K, V>::Map(const Map<K, V> & map){
+
+	size_ = 0;
+	Node<K, V> * ptr = map.root;
+	copy(ptr);
+}
+
+// deleteMap
+template <class K, class V>
+void Map<K, V>::deleteMap(Node<K, V> * & ptr){
+
+	if(ptr != NULL){
+		deleteMap(ptr->left);
+		deleteMap(ptr->right);
+		
+		ptr->parent = NULL;
+		ptr->left = NULL;
+		ptr->right = NULL;
+
+		delete ptr;
+		size_ = 0;	
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////
 template <class K, class V>
 class Iterator{
@@ -199,15 +246,17 @@ class Iterator{
 		return (p_current_node != itr2.p_current_node);
 	}
 	
-	Iterator<K, V> * operator++(Node<K, V> & currNode){ // successor operation, fixed
-                if(currNode->right != NULL) return begin(currNode->right);
+	void Iterator<K, V>::operator++(Node<K, V> & currNode){ // successor operation, fixed
+
+                if(currNode->right != NULL) currNode = currNode->right;
+		while(currNode->left != NULL) currNode = currNode->left;
                 else{
-                        Node<K, V> parentNode = currNode->parent;
+                	Node<K, V> parentNode = currNode->parent;
                         while((parentNode != NULL) && (currNode = parentNode->right)){
                                 currNode = parentNode;
                                 parentNode = currNode->parent;
                         }
-                        return parentNode;
+                        parentNode = NULL;
                 }
         }
 
@@ -223,10 +272,34 @@ class Iterator{
 };
 
 /////////////////////////////////////////////////////////////////////////
-int main(){
+int main(){ //A NICE TEST DRIVER :)
 
-	Map<int, string> myMap();
-	
+    Map<char,int> mymap;
+
+    mymap['b'] = 100;
+    mymap['a'] = 200;
+    mymap['c'] = 300;
+        // show content:
+   /* for (Map<char,int>::iterator it=mymap.begin(); it!=mymap.end(); it++)
+        std::cout << it->first << " => " << it->second << '\n';
+    mymap['a']=10;
+    mymap['b']=20;
+    mymap['c']=30;
+    while (!mymap.empty())
+    {
+        std::cout << mymap.begin()->first << " => " << mymap.begin()->second << '\n';
+        mymap.erase(mymap.begin());
+    }
+    it = mymap.find('b');
+    if (it != mymap.end())
+    mymap.erase (it);
+    // print content:
+    std::cout << "elements in mymap:" << '\n';
+    std::cout << "a => " << mymap.find('a')->second << '\n';
+    std::cout << "c => " << mymap.find('c')->second << '\n';
+    std::cout << "d => " << mymap.find('d')->second << '\n';
+*/
 	return 0;
 };
+
 
