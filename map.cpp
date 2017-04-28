@@ -64,8 +64,9 @@ class Map{
 
 	public:
 	Map() : root () {} // instantiating our head node for the map
-    Map(const Map & m) : Map(root->left, root->right) {}
-	~Map(); // Destructor --> implement this!
+    Map(const Map<K, V> & m);
+	~Map() { deleteMap(root); } // Destructor --> implement this!
+
 
 	bool empty() { return (root == NULL); }
 
@@ -118,6 +119,9 @@ class Map{
 	int size() { return size_; }
 
 	private:
+
+    void deleteMap(Node<K, V> * &x);
+    void copy(Node<K, V> * &x);
 	Node<K, V> * root; //this is the only node the object contains
     int size_;
 };
@@ -151,6 +155,7 @@ class Iterator{
                 }
         }
 
+
 	std::pair<K, V> & operator * () const{
 		return std::pair<K, V>(p_current_node->key, p_current_node->value);
 	}
@@ -162,12 +167,53 @@ class Iterator{
 
 };
 
+//copy constructor
+template <class K, class V>
+void Map<K, V>::copy(Node<K, V> * &x){
+
+    if (x != NULL){
+        insert(x->key, x->value);
+        size_++;
+        copy(x->left);
+        copy(x->right);
+    }
+}
+
+//copy constructor
+template <class K, class V>
+Map<K, V>::Map(const Map<K, V> & m){
+
+    root = NULL;
+    size_ = 0;
+    Node<K, V> * x = m.root;
+    copy(x);
+
+}
+
+template <class K, class V>
+void Map<K, V>::deleteMap(Node<K, V> * &x){
+
+    if(x != NULL){
+        deleteMap(x->left);
+        deleteMap(x->right);
+
+        x->parent = NULL;
+        x->right = NULL;
+        x->left = NULL;
+
+        delete x;
+        x = NULL;
+        size_ = 0;
+    }
+
+}
+
 /////////////////////////////////////////////////////////////////////////
 int main(){
 
     Map<char,int> mymap;
 
-    mymap['b'] = 100;
+/*    mymap['b'] = 100;
     mymap['a'] = 200;
     mymap['c'] = 300;
 
@@ -194,7 +240,7 @@ int main(){
     std::cout << "a => " << mymap.find('a')->second << '\n';
     std::cout << "c => " << mymap.find('c')->second << '\n';
     std::cout << "d => " << mymap.find('d')->second << '\n';
-
+*/
 	return 0;
 };
 
